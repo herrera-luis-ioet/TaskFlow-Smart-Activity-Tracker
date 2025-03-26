@@ -180,7 +180,6 @@ class TaskService {
       final tasks = await _repository.getAllTasks();
       return tasks.where((task) =>
         !task.isCompleted &&
-        task.dueDate != null &&
         task.dueDate.isBefore(DateTime.now())
       ).length;
     } catch (e) {
