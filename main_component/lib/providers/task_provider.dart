@@ -106,7 +106,7 @@ class TaskProvider extends ChangeNotifier {
   }
 
   /// Deletes a task by ID
-  Future<void> deleteTask(int id) async {
+  Future<void> deleteTask(String id) async {
     _setLoading(true);
     try {
       await _taskService.deleteTask(id);
@@ -119,7 +119,7 @@ class TaskProvider extends ChangeNotifier {
   }
 
   /// Marks a task as complete
-  Future<void> markTaskAsComplete(int id) async {
+  Future<void> markTaskAsComplete(String id) async {
     _setLoading(true);
     try {
       await _taskService.markTaskAsComplete(id);

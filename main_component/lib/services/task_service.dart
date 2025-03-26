@@ -57,27 +57,27 @@ class TaskService {
   }
 
   /// Retrieves a task by its ID
-  Future<TaskModel?> getTaskById(int id) async {
+  Future<TaskModel?> getTaskById(String id) async {
     try {
-      return await _repository.getTaskById(id.toString());
+      return await _repository.getTaskById(id);
     } catch (e) {
       throw Exception('Failed to retrieve task: $e');
     }
   }
 
   /// Deletes a task by its ID
-  Future<void> deleteTask(int id) async {
+  Future<void> deleteTask(String id) async {
     try {
-      await _repository.deleteTask(id.toString());
+      await _repository.deleteTask(id);
     } catch (e) {
       throw Exception('Failed to delete task: $e');
     }
   }
 
   /// Marks a task as complete
-  Future<void> markTaskAsComplete(int id) async {
+  Future<void> markTaskAsComplete(String id) async {
     try {
-      await _repository.markTaskAsComplete(id.toString());
+      await _repository.markTaskAsComplete(id);
     } catch (e) {
       throw Exception('Failed to mark task as complete: $e');
     }

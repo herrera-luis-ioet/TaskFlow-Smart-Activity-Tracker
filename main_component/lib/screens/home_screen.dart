@@ -1,15 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../widgets/custom_app_bar.dart';
 import '../navigation/app_router.dart';
 import '../utils/responsive_helper.dart';
 import '../widgets/responsive_builder.dart';
+import '../providers/task_provider.dart';
+import '../widgets/task_card.dart';
 
 /// HomeScreen displays the dashboard with task overview and quick actions.
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late TaskProvider _taskProvider;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_taskProvider.isLoading) {
+      _taskProvider = Provider.of<TaskProvider>(context, listen: false);
+      _taskProvider.refreshAll();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    _taskProvider = context.watch<TaskProvider>();
+    
+    if (_taskProvider.error != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_taskProvider.error!)),
+        );
+      });
+    }
+    
     return Scaffold(
       appBar: CustomAppBar(
         title: 'Dashboard',
@@ -82,6 +112,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+
   Widget _buildTaskOverview(BuildContext context) {
     return Card(
       child: Padding(
@@ -101,21 +132,21 @@ class HomeScreen extends StatelessWidget {
                 _buildStatCard(
                   context,
                   'Pending',
-                  '5',
+                  _taskProvider.tasks.where((t) => !t.isCompleted).length.toString(),
                   Icons.pending_actions,
                   Colors.orange,
                 ),
                 _buildStatCard(
                   context,
                   'Completed',
-                  '12',
+                  _taskProvider.tasks.where((t) => t.isCompleted).length.toString(),
                   Icons.task_alt,
                   Colors.green,
                 ),
                 _buildStatCard(
                   context,
                   'Overdue',
-                  '2',
+                  _taskProvider.overdueTasksCount.toString(),
                   Icons.warning_amber,
                   Colors.red,
                 ),
@@ -202,24 +233,32 @@ class HomeScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            // TODO: Replace with actual task list
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: 3,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text('Task ${index + 1}'),
-                  subtitle: Text('Due in ${index + 1} days'),
-                  leading: const Icon(Icons.task),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => AppRouter.navigateToTaskDetail(
-                    context,
-                    'task-${index + 1}',
-                  ),
-                );
-              },
-            ),
+            if (_taskProvider.isLoading)
+              const Center(child: CircularProgressIndicator())
+            else if (_taskProvider.tasks.isEmpty)
+              const Center(child: Text('No upcoming tasks'))
+            else
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _taskProvider.tasks.take(3).length,
+                itemBuilder: (context, index) {
+                  final task = _taskProvider.tasks[index];
+                  return TaskCard(
+                    task: task,
+                    onTap: () => AppRouter.navigateToTaskDetail(
+                      context,
+                      task.id.toString(),
+                    ),
+                    onComplete: (completed) {
+                      if (completed) {
+                        _taskProvider.markTaskAsComplete(task.id);
+                      }
+                    },
+                    onDelete: () => _taskProvider.deleteTask(task.id),
+                  );
+                },
+              ),
           ],
         ),
       ),
