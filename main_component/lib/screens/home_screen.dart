@@ -79,10 +79,6 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => AppRouter.navigateToCreateTask(context),
-        child: const Icon(Icons.add),
-      ),
     );
   }
 
@@ -255,17 +251,13 @@ class HomeScreen extends StatelessWidget {
                   context,
                   'Calendar',
                   Icons.calendar_today,
-                  () {
-                    // TODO: Navigate to calendar
-                  },
+                  () => AppRouter.navigateToCalendar(context),
                 ),
                 _buildActionButton(
                   context,
                   'Analytics',
                   Icons.analytics,
-                  () {
-                    // TODO: Navigate to analytics
-                  },
+                  () => AppRouter.navigateToAnalytics(context),
                 ),
               ],
             ),

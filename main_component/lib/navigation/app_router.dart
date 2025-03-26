@@ -82,4 +82,36 @@ class AppRouter {
   static void goBack(BuildContext context) {
     Navigator.pop(context);
   }
+
+  /// Navigate to calendar screen using bottom navigation.
+  static void navigateToCalendar(BuildContext context) {
+    if (context.mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const BaseScreen()),
+        (route) => false,
+      ).then((_) {
+        if (context.mounted) {
+          final state = context.findAncestorStateOfType<BaseScreenState>();
+          state?.onNavigationItemTapped(2); // Calendar index
+        }
+      });
+    }
+  }
+
+  /// Navigate to analytics screen using bottom navigation.
+  static void navigateToAnalytics(BuildContext context) {
+    if (context.mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const BaseScreen()),
+        (route) => false,
+      ).then((_) {
+        if (context.mounted) {
+          final state = context.findAncestorStateOfType<BaseScreenState>();
+          state?.onNavigationItemTapped(3); // Analytics index
+        }
+      });
+    }
+  }
 }

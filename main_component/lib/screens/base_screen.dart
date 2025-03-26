@@ -10,13 +10,14 @@ class BaseScreen extends StatefulWidget {
   const BaseScreen({super.key});
 
   @override
-  State<BaseScreen> createState() => _BaseScreenState();
+  State<BaseScreen> createState() => BaseScreenState();
 }
 
-class _BaseScreenState extends State<BaseScreen> {
+class BaseScreenState extends State<BaseScreen> {
   int _currentIndex = 0;
 
-  void _onNavigationItemTapped(int index) {
+  /// Updates the current index and triggers a rebuild with the new screen.
+  void onNavigationItemTapped(int index) {
     setState(() {
       _currentIndex = index;
     });
@@ -28,7 +29,7 @@ class _BaseScreenState extends State<BaseScreen> {
       body: AppRouter.getScreenForIndex(_currentIndex),
       bottomNavigationBar: BottomNavBar.standard(
         currentIndex: _currentIndex,
-        onTap: _onNavigationItemTapped,
+        onTap: (index) => onNavigationItemTapped(index),
       ),
     );
   }
