@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
 /// Enum representing task priority levels
@@ -30,6 +31,20 @@ class SubTask {
     title: json['title'] as String,
     isCompleted: json['isCompleted'] as bool,
   );
+
+  /// Converts the SubTask instance to a SQLite database map.
+  Map<String, dynamic> toMap() => {
+    'id': id,
+    'title': title,
+    'is_completed': isCompleted ? 1 : 0,  // SQLite doesn't have boolean type
+  };
+
+  /// Creates a SubTask instance from a SQLite database map.
+  factory SubTask.fromMap(Map<String, dynamic> map) => SubTask(
+    id: map['id'] as String,
+    title: map['title'] as String,
+    isCompleted: (map['is_completed'] as int) == 1,  // Convert SQLite integer to boolean
+  );
 }
 
 /// Represents an attachment in a task
@@ -58,6 +73,22 @@ class TaskAttachment {
     name: json['name'] as String,
     url: json['url'] as String,
     type: json['type'] as String,
+  );
+
+  /// Converts the TaskAttachment instance to a SQLite database map.
+  Map<String, dynamic> toMap() => {
+    'id': id,
+    'name': name,
+    'url': url,
+    'type': type,
+  };
+
+  /// Creates a TaskAttachment instance from a SQLite database map.
+  factory TaskAttachment.fromMap(Map<String, dynamic> map) => TaskAttachment(
+    id: map['id'] as String,
+    name: map['name'] as String,
+    url: map['url'] as String,
+    type: map['type'] as String,
   );
 }
 
@@ -166,6 +197,58 @@ class TaskModel {
         ? DateTime.parse(json['completedAt'] as String)
         : null,
   );
+
+  /// Converts the TaskModel instance to a SQLite database map.
+  /// This method handles the conversion of complex types to SQLite-compatible formats.
+  Map<String, dynamic> toMap() => {
+    'id': id,
+    'title': title,
+    'description': description,
+    'due_date': dueDate.toIso8601String(),
+    'priority': priority.toString().split('.').last,
+    'category': category,
+    'is_completed': isCompleted ? 1 : 0,  // SQLite doesn't have boolean type
+    'sub_tasks': subTasks.map((st) => st.toMap()).toList().toString(),  // Store as JSON string
+    'attachments': attachments.map((a) => a.toMap()).toList().toString(),  // Store as JSON string
+    'notes': notes,
+    'created_at': createdAt.toIso8601String(),
+    'completed_at': completedAt?.toIso8601String(),
+  };
+
+  /// Creates a TaskModel instance from a SQLite database map.
+  /// This method handles the conversion of SQLite-stored data back to complex types.
+  factory TaskModel.fromMap(Map<String, dynamic> map) {
+    // Parse the JSON strings back to lists
+    final List<dynamic> subTasksData = map['sub_tasks'] != null
+        ? List<dynamic>.from(json.decode(map['sub_tasks'] as String))
+        : [];
+    final List<dynamic> attachmentsData = map['attachments'] != null
+        ? List<dynamic>.from(json.decode(map['attachments'] as String))
+        : [];
+
+    return TaskModel(
+      id: map['id'] as String,
+      title: map['title'] as String,
+      description: map['description'] as String,
+      dueDate: DateTime.parse(map['due_date'] as String),
+      priority: TaskPriority.values.firstWhere(
+        (e) => e.toString().split('.').last == map['priority'],
+      ),
+      category: map['category'] as String,
+      isCompleted: (map['is_completed'] as int) == 1,  // Convert SQLite integer to boolean
+      subTasks: subTasksData
+          .map((st) => SubTask.fromMap(st as Map<String, dynamic>))
+          .toList(),
+      attachments: attachmentsData
+          .map((a) => TaskAttachment.fromMap(a as Map<String, dynamic>))
+          .toList(),
+      notes: map['notes'] as String,
+      createdAt: DateTime.parse(map['created_at'] as String),
+      completedAt: map['completed_at'] != null
+          ? DateTime.parse(map['completed_at'] as String)
+          : null,
+    );
+  }
 
   @override
   bool operator ==(Object other) =>
